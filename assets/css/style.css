@@ -1,0 +1,331 @@
+/* ===== 基础样式 ===== */
+:root {
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary-color: #64748b;
+    --bg-color: #f8fafc;
+    --card-bg: #ffffff;
+    --text-color: #1e293b;
+    --text-light: #64748b;
+    --border-color: #e2e8f0;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --radius: 8px;
+    --radius-lg: 12px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ===== Header ===== */
+.header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 60px 0;
+    text-align: center;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 8px;
+}
+
+.desc {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 30px 0;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--bg-color);
+}
+
+.filter-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* ===== Papers List ===== */
+.papers-list {
+    padding-bottom: 40px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-light);
+}
+
+/* ===== Date Section ===== */
+.date-section {
+    margin-bottom: 30px;
+}
+
+.date-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.date-header h2 {
+    font-size: 1.3rem;
+    color: var(--text-color);
+}
+
+.date-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+/* ===== Paper Card ===== */
+.paper-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.paper-card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.paper-header {
+    padding: 20px 20px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.paper-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.paper-meta {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.paper-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.source-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.source-conference {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.source-journal {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.source-arxiv {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+/* ===== Paper Content ===== */
+.paper-content {
+    padding: 15px 20px;
+}
+
+.paper-section {
+    margin-bottom: 15px;
+}
+
+.paper-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.section-content {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* ===== Abstract Section ===== */
+.abstract-section {
+    background: #f8fafc;
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.abstract-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--primary-color);
+}
+
+.abstract-toggle:hover {
+    color: var(--primary-dark);
+}
+
+.abstract-content {
+    margin-top: 12px;
+    display: none;
+}
+
+.abstract-content.show {
+    display: block;
+}
+
+.abstract-original {
+    background: white;
+    padding: 15px;
+    border-radius: var(--radius);
+    border-left: 3px solid var(--primary-color);
+    margin-bottom: 12px;
+    font-style: italic;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.abstract-translated {
+    font-size: 0.9rem;
+    line-height: 1.7;
+}
+
+/* ===== Footer ===== */
+.footer {
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    padding: 30px 0;
+    text-align: center;
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    .header {
+        padding: 40px 0;
+    }
+
+    .header h1 {
+        font-size: 1.8rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .filter-bar {
+        gap: 8px;
+    }
+
+    .filter-btn {
+        padding: 8px 15px;
+        font-size: 0.85rem;
+    }
+
+    .paper-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+}
+
+.empty-state h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
