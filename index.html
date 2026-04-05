@@ -15,17 +15,49 @@
         </div>
     </header>
 
-    <main class="container">
-        <div class="filter-bar">
-            <button class="filter-btn active" data-filter="all">全部</button>
-            <button class="filter-btn" data-filter="conference">🏆 顶会</button>
-            <button class="filter-btn" data-filter="journal">📘 顶刊</button>
-            <button class="filter-btn" data-filter="arxiv">📄 arXiv</button>
-        </div>
+    <nav class="nav-bar">
+        <div class="container">
+            <div class="nav-controls">
+                <!-- 日历选择器 -->
+                <div class="calendar-wrapper">
+                    <button class="nav-btn calendar-btn" id="calendarBtn" title="选择日期">
+                        📅 <span id="currentDate">今日</span>
+                    </button>
+                    <div class="calendar-dropdown" id="calendarDropdown">
+                        <div class="calendar-header">
+                            <button class="cal-nav" id="prevMonth">◀</button>
+                            <span id="calendarMonth">2026年4月</span>
+                            <button class="cal-nav" id="nextMonth">▶</button>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid">
+                            <!-- 日历格子由 JS 生成 -->
+                        </div>
+                    </div>
+                </div>
 
-        <div id="papers-list" class="papers-list">
-            <!-- 论文列表将通过 JS 动态加载 -->
-            <div class="loading">正在加载论文列表...</div>
+                <!-- 今日推荐按钮 -->
+                <button class="nav-btn today-btn" id="todayBtn" title="回到今日">
+                    📌 今日推荐
+                </button>
+
+                <!-- 筛选按钮 -->
+                <div class="filter-wrapper">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="conference">🏆 顶会</button>
+                    <button class="filter-btn" data-filter="journal">📘 顶刊</button>
+                    <button class="filter-btn" data-filter="arxiv">📄 arXiv</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="papers-container" class="papers-container">
+            <!-- 论文内容将通过 JS 动态加载 -->
+            <div class="loading">
+                <div class="loading-spinner"></div>
+                <p>正在加载论文...</p>
+            </div>
         </div>
     </main>
 
