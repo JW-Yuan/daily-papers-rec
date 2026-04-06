@@ -13,6 +13,18 @@ const CONFIG = {
     }
 };
 
+/**
+ * 解析论文资源路径。Markdown 里常写 `papers/imgs/...`，若再拼 papersBasePath 会变成 papers/papers/...
+ */
+function resolvePaperAssetUrl(rel) {
+    if (!rel) return '';
+    let p = String(rel).trim();
+    if (p.startsWith('http://') || p.startsWith('https://')) return p;
+    p = p.replace(/^\.\//, '');
+    if (p.startsWith('papers/')) return p;
+    return `${CONFIG.papersBasePath}${p}`;
+}
+
 let selectedDate = new Date();
 let currentFilter = 'all';
 const availableDates = new Set();
@@ -562,9 +574,7 @@ function renderPaperDetailHtml(paper, category) {
     // 架构图HTML
     let archImageHtml = '';
     if (paper.archImage) {
-        const imgUrl = paper.archImage.startsWith('http') 
-            ? paper.archImage 
-            : `${CONFIG.papersBasePath}${paper.archImage}`;
+        const imgUrl = resolvePaperAssetUrl(paper.archImage);
         archImageHtml = `
             <div class="paper-arch-image">
                 <div class="section-title">🏗️ 模型架构图</div>
