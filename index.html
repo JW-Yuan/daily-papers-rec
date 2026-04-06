@@ -24,10 +24,16 @@
                         📅 <span id="currentDate">今日</span>
                     </button>
                     <div class="calendar-dropdown" id="calendarDropdown">
+                        <div class="calendar-select-row" aria-label="选择年月">
+                            <select id="yearSelect" class="calendar-select" title="年份"></select>
+                            <span class="calendar-select-sep">年</span>
+                            <select id="monthSelect" class="calendar-select" title="月份"></select>
+                            <span class="calendar-select-sep">月</span>
+                        </div>
                         <div class="calendar-header">
-                            <button class="cal-nav" id="prevMonth">◀</button>
-                            <span id="calendarMonth">2026年4月</span>
-                            <button class="cal-nav" id="nextMonth">▶</button>
+                            <button type="button" class="cal-nav" id="prevMonth" aria-label="上一月">◀</button>
+                            <span id="calendarMonth" class="calendar-month-label">2026年4月</span>
+                            <button type="button" class="cal-nav" id="nextMonth" aria-label="下一月">▶</button>
                         </div>
                         <div class="calendar-grid" id="calendarGrid">
                             <!-- 日历格子由 JS 生成 -->
@@ -60,6 +66,17 @@
             </div>
         </div>
     </main>
+
+    <div id="paper-detail-modal" class="paper-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="paper-modal-title">
+        <div class="paper-modal-backdrop" id="paperModalBackdrop"></div>
+        <div class="paper-modal-panel">
+            <div class="paper-modal-header">
+                <h2 id="paper-modal-title" class="paper-modal-title md-inline"></h2>
+                <button type="button" class="paper-modal-close" id="paperModalClose" aria-label="关闭">×</button>
+            </div>
+            <div class="paper-modal-body" id="paperModalBody"></div>
+        </div>
+    </div>
 
     <footer class="footer">
         <div class="container">

@@ -1,16 +1,19 @@
-/* ===== 基础样式 ===== */
+/* ===== 基础样式 · 与 JW-Yuan.github.io style 主色一致 ===== */
 :root {
-    --primary-color: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #dbeafe;
-    --secondary-color: #64748b;
-    --bg-color: #f8fafc;
-    --card-bg: #ffffff;
-    --text-color: #1e293b;
-    --text-light: #64748b;
-    --border-color: #e2e8f0;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --primary-color: #2d5016;
+    --secondary-color: #4a7c2a;
+    --accent-color: #6b8e3f;
+    --primary-dark: #1d3a0f;
+    --primary-mid: #4a7c2a;
+    --primary-light: #cfe0c8;
+    --primary-muted: #eef3ea;
+    --bg-color: #f2f6ee;
+    --card-bg: #fafcf8;
+    --text-color: #243218;
+    --text-light: #556b45;
+    --border-color: #c9d4b8;
+    --shadow: 0 1px 3px rgba(45, 80, 22, 0.08);
+    --shadow-lg: 0 12px 28px -8px rgba(45, 80, 22, 0.13);
     --radius: 8px;
     --radius-lg: 12px;
 }
@@ -36,10 +39,11 @@ body {
 
 /* ===== Header ===== */
 .header {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
+    background: var(--primary-color);
+    color: #f7f5eb;
     padding: 50px 0;
     text-align: center;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .header h1 {
@@ -63,7 +67,8 @@ body {
 
 /* ===== Navigation Bar ===== */
 .nav-bar {
-    background: var(--card-bg);
+    background: rgba(250, 251, 245, 0.94);
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--border-color);
     padding: 15px 0;
     position: sticky;
@@ -98,8 +103,8 @@ body {
 }
 
 .calendar-btn:hover {
-    background: var(--primary-light);
-    border-color: var(--primary-color);
+    background: var(--primary-muted);
+    border-color: var(--primary-mid);
 }
 
 .calendar-dropdown {
@@ -138,9 +143,48 @@ body {
     transition: all 0.2s;
 }
 
-.cal-nav:hover {
-    background: var(--bg-color);
+.cal-nav:hover:not(:disabled) {
+    background: var(--primary-muted);
     color: var(--primary-color);
+}
+
+.cal-nav:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.calendar-select-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.calendar-select {
+    padding: 8px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-width: 5.5rem;
+}
+
+.calendar-select:focus {
+    outline: 2px solid var(--primary-light);
+    border-color: var(--primary-mid);
+}
+
+.calendar-select-sep {
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.calendar-month-label {
+    font-weight: 600;
+    color: var(--text-color);
 }
 
 .calendar-grid {
@@ -170,17 +214,18 @@ body {
     background: none;
 }
 
-.cal-day:hover {
-    background: var(--primary-light);
+.cal-day:not(:disabled):hover {
+    background: var(--primary-muted);
 }
 
-.cal-day.today {
-    background: var(--primary-color);
-    color: white;
+.cal-day.today:not(:disabled) {
+    box-shadow: inset 0 0 0 2px var(--primary-mid);
 }
 
 .cal-day.has-papers {
     position: relative;
+    font-weight: 600;
+    color: var(--primary-dark);
 }
 
 .cal-day.has-papers::after {
@@ -189,28 +234,45 @@ body {
     bottom: 4px;
     width: 4px;
     height: 4px;
-    background: var(--primary-color);
+    background: var(--primary-mid);
     border-radius: 50%;
 }
 
 .cal-day.has-papers.today::after {
-    background: white;
+    background: var(--primary-dark);
 }
 
-.cal-day.selected {
+.cal-day.selected:not(:disabled) {
     background: var(--primary-light);
-    color: var(--primary-color);
-    font-weight: 600;
+    color: var(--primary-dark);
+    font-weight: 700;
 }
 
 .cal-day.other-month {
     color: var(--text-light);
-    opacity: 0.5;
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.cal-day.cal-day--no-data {
+    color: #b0b59a;
+    background: #f0f2e6;
+    cursor: not-allowed;
+    opacity: 0.7;
+    font-weight: 400;
+}
+
+.cal-day.cal-day--no-data:hover {
+    background: #f0f2e6;
 }
 
 .cal-day:disabled {
     cursor: not-allowed;
-    opacity: 0.3;
+    opacity: 0.55;
+}
+
+.cal-day.cal-day--no-data:disabled {
+    opacity: 0.55;
 }
 
 /* ===== Today Button ===== */
@@ -318,13 +380,46 @@ body {
     background: var(--card-bg);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow);
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     overflow: hidden;
-    transition: box-shadow 0.2s;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
 }
 
 .paper-card:hover {
     box-shadow: var(--shadow-lg);
+    border-color: var(--primary-mid);
+}
+
+.paper-card:focus {
+    outline: 2px solid var(--primary-mid);
+    outline-offset: 2px;
+}
+
+.paper-card--compact .paper-header {
+    padding-bottom: 12px;
+}
+
+.paper-card--compact .paper-title {
+    margin-bottom: 8px;
+}
+
+.paper-card-preview {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.paper-card-hint {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--primary-mid);
+    font-weight: 500;
 }
 
 .paper-header {
@@ -371,18 +466,21 @@ body {
 }
 
 .source-conference {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #dbe8d4;
+    background: color-mix(in srgb, var(--primary-color) 22%, #fff);
+    color: var(--primary-dark);
 }
 
 .source-journal {
-    background: #dcfce7;
-    color: #166534;
+    background: #d2e2c8;
+    background: color-mix(in srgb, var(--secondary-color) 24%, #fff);
+    color: var(--primary-color);
 }
 
 .source-arxiv {
-    background: #f3e8ff;
-    color: #7c3aed;
+    background: #dde8cc;
+    background: color-mix(in srgb, var(--accent-color) 26%, #fff);
+    color: var(--primary-dark);
 }
 
 /* ===== Paper Content ===== */
@@ -413,9 +511,9 @@ body {
     line-height: 1.7;
 }
 
-/* ===== Abstract Section ===== */
+/* ===== Abstract Section (list view 不再使用折叠；详情在弹窗) ===== */
 .abstract-section {
-    background: #f8fafc;
+    background: var(--primary-muted);
     padding: 15px 20px;
     border-top: 1px solid var(--border-color);
 }
@@ -453,7 +551,7 @@ body {
 }
 
 .abstract-original {
-    background: white;
+    background: #f9f8f2;
     padding: 15px;
     border-radius: var(--radius);
     border-left: 3px solid var(--primary-color);
@@ -526,6 +624,124 @@ body {
 
 .footer a:hover {
     text-decoration: underline;
+}
+
+/* ===== Paper detail modal ===== */
+.paper-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.paper-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* 不使用 backdrop-filter，避免与弹窗内容不同步的模糊合成延迟 */
+.paper-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.paper-modal-panel {
+    position: relative;
+    width: min(720px, 100%);
+    max-height: min(88vh, 900px);
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 1;
+    transform: translateY(8px);
+    transition: transform 0.2s ease;
+}
+
+.paper-modal.is-open .paper-modal-panel {
+    transform: translateY(0);
+}
+
+.paper-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--card-bg);
+}
+
+.paper-modal-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    line-height: 1.45;
+    margin: 0;
+    flex: 1;
+}
+
+.paper-modal-close {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-light);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.paper-modal-close:hover {
+    background: var(--primary-muted);
+    color: var(--primary-dark);
+}
+
+.paper-modal-body {
+    padding: 16px 20px 22px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.paper-modal-body .paper-meta {
+    margin-bottom: 16px;
+}
+
+.paper-modal-body .paper-section {
+    margin-bottom: 18px;
+}
+
+.paper-modal-body .abstract-original {
+    border-left-color: var(--primary-mid);
+}
+
+.detail-list {
+    margin: 0;
+    padding-left: 1.25rem;
+    color: var(--text-color);
+    line-height: 1.65;
+}
+
+.detail-list li {
+    margin-bottom: 0.35rem;
+}
+
+.markdown-like ul {
+    margin: 0;
 }
 
 /* ===== Responsive ===== */
@@ -611,4 +827,44 @@ body {
 .markdown-content blockquote {
     margin: 0;
     padding: 0;
+}
+
+/* ===== Markdown 内联（**加粗**、`代码`、链接）===== */
+.md-inline strong {
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.md-inline em {
+    font-style: italic;
+}
+
+.md-inline a {
+    color: var(--secondary-color);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.md-inline a:hover {
+    color: var(--primary-color);
+}
+
+.md-inline-code,
+.md-inline code.md-inline-code {
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--primary-muted);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    color: var(--primary-dark);
+}
+
+.paper-title.md-inline strong {
+    font-weight: 700;
+}
+
+.paper-modal-title .md-inline strong,
+.paper-modal-title strong {
+    font-weight: 700;
+    color: inherit;
 }
