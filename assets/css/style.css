@@ -48,8 +48,16 @@ body {
 
 .header h1 {
     font-size: 2.5rem;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 700;
+}
+
+.header-start {
+    font-size: 0.95rem;
+    opacity: 0.88;
+    margin: 0 auto 12px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
 }
 
 .subtitle {
@@ -58,11 +66,18 @@ body {
     margin-bottom: 8px;
 }
 
+/* 单行展示，窄屏横向滚动 */
 .desc {
     font-size: 0.95rem;
     opacity: 0.8;
-    max-width: 600px;
     margin: 0 auto;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: min(100%, calc(100vw - 40px));
+    padding: 0 2px 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
 /* ===== Navigation Bar ===== */
@@ -626,95 +641,96 @@ body {
     text-decoration: underline;
 }
 
-/* ===== Paper detail modal ===== */
-.paper-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 400;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+/* ===== Paper detail page（与整站同底，不用大块色底） ===== */
+.paper-detail-page {
+    background: var(--bg-color);
+    min-height: calc(100vh - 200px);
+    padding-bottom: 60px;
 }
 
-.paper-modal.is-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-}
-
-/* 不使用 backdrop-filter，避免与弹窗内容不同步的模糊合成延迟 */
-.paper-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.48);
-}
-
-.paper-modal-panel {
-    position: relative;
-    width: min(720px, 100%);
-    max-height: min(88vh, 900px);
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    border: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    z-index: 1;
-    transform: translateY(8px);
-    transition: transform 0.2s ease;
-}
-
-.paper-modal.is-open .paper-modal-panel {
-    transform: translateY(0);
-}
-
-.paper-modal-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 18px 20px 12px;
+.detail-page-header {
+    padding: 20px 0;
     border-bottom: 1px solid var(--border-color);
-    background: var(--card-bg);
+    margin-bottom: 30px;
 }
 
-.paper-modal-title {
-    font-size: 1.15rem;
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-color);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: var(--primary-muted);
+    border-color: var(--accent-color);
+    color: var(--primary-dark);
+}
+
+.detail-page-content {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.detail-page-title {
+    font-size: 1.6rem;
     font-weight: 700;
     color: var(--primary-dark);
-    line-height: 1.45;
-    margin: 0;
-    flex: 1;
+    line-height: 1.4;
+    margin-bottom: 24px;
 }
 
-.paper-modal-close {
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    border: none;
-    border-radius: var(--radius);
+#detail-page-body .paper-meta {
+    margin-bottom: 24px;
+    padding: 0 0 18px;
+    background: none;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#detail-page-body .paper-section {
+    margin-bottom: 28px;
+}
+
+#detail-page-body .section-title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+}
+
+#detail-page-body .section-content {
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+#detail-page-body .abstract-original {
     background: transparent;
-    color: var(--text-light);
-    font-size: 1.5rem;
-    line-height: 1;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    border-left-color: var(--border-color);
+    color: var(--text-color);
+    font-style: normal;
 }
 
-.paper-modal-close:hover {
-    background: var(--primary-muted);
-    color: var(--primary-dark);
+#detail-page-body .abstract-section {
+    background: none;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    padding: 20px 0 0;
+    margin-top: 12px;
 }
 
-.paper-modal-body {
-    padding: 16px 20px 22px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+#detail-page-body .paper-arch-image {
+    margin-bottom: 28px;
+}
+
+#detail-page-body .arch-image-container img {
+    max-height: 500px;
 }
 
 .paper-modal-body .paper-meta {
@@ -729,13 +745,13 @@ body {
     border-left-color: var(--primary-mid);
 }
 
-/* ===== 架构图样式 ===== */
+/* ===== 架构图样式（无衬底色块） ===== */
 .paper-arch-image {
-    margin-bottom: 20px;
-    padding: 16px;
-    background: var(--primary-muted);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 0;
 }
 
 .paper-arch-image .section-title {
@@ -748,9 +764,9 @@ body {
 .arch-image-container {
     width: 100%;
     overflow-x: auto;
-    background: white;
+    background: transparent;
     border-radius: var(--radius);
-    padding: 12px;
+    padding: 0;
     text-align: center;
 }
 
@@ -796,6 +812,11 @@ body {
 
     .header h1 {
         font-size: 1.8rem;
+    }
+
+    .header-start {
+        font-size: 0.88rem;
+        padding: 0 8px;
     }
 
     .subtitle {

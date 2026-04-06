@@ -25,6 +25,17 @@ function resolvePaperAssetUrl(rel) {
     return `${CONFIG.papersBasePath}${p}`;
 }
 
+/** 表格单元格中的链接：纯 URL 或 Markdown [label](url) */
+function extractUrlFromTableCell(value) {
+    if (!value || value === '-') return '';
+    const s = String(value).trim();
+    const md = s.match(/\[([^\]]*)\]\((https?:[^)\s]+)\)/);
+    if (md) return md[2];
+    const plain = s.match(/^(https?:\/\/[^\s<]+)/);
+    if (plain) return plain[1];
+    return '';
+}
+
 let selectedDate = new Date();
 let currentFilter = 'all';
 const availableDates = new Set();
@@ -41,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCalendar();
     initFilterButtons();
     initTodayButton();
-    initPaperModal();
+    initBackButton();
     bindPaperCardClicks();
     loadAvailableDates().then(() => {
         loadPapersForDate(selectedDate);
@@ -352,6 +363,18 @@ async function loadAvailableDates() {
         }
     } catch (error) {
         console.error('Failed to load available dates:', error);
+    } finally {
+        updateHeaderStartFrom();
+    }
+}
+
+function updateHeaderStartFrom() {
+    const el = document.getElementById('headerStartFrom');
+    if (!el) return;
+    if (minDate) {
+        el.textContent = `Start from ${formatDate(minDate)} · Updated daily at 07:00.`;
+    } else {
+        el.textContent = 'Updated daily at 07:00.';
     }
 }
 
@@ -360,8 +383,11 @@ function paperKey(dateStr, category, index) {
 }
 
 async function loadPapersForDate(date) {
-    const container = document.getElementById('papers-container');
+    const container = document.getElementById('papers-list-view');
     const dateStr = formatDate(date);
+
+    // 确保列表页显示，详情页隐藏
+    showListView();
 
     container.innerHTML = `
         <div class="loading">
@@ -417,6 +443,20 @@ async function loadPapersForDate(date) {
     container.innerHTML = html;
 }
 
+function showListView() {
+    document.getElementById('papers-list-view').style.display = 'block';
+    document.getElementById('paper-detail-view').style.display = 'none';
+    document.querySelector('.nav-bar').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function showDetailView() {
+    document.getElementById('papers-list-view').style.display = 'none';
+    document.getElementById('paper-detail-view').style.display = 'block';
+    document.querySelector('.nav-bar').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
 async function loadCategoryPapers(category, dateStr) {
     try {
         const response = await fetch(
@@ -434,6 +474,12 @@ async function loadCategoryPapers(category, dateStr) {
 
 function escapeRegex(s) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/** 去掉文末误收录的 Markdown 分隔线（如论文之间的 ---） */
+function stripTrailingMarkdownHr(text) {
+    if (!text) return '';
+    return text.replace(/\r?\n\s*---+[\s\r\n]*$/g, '').trim();
 }
 
 function parseMarkdownPapers(markdown) {
@@ -457,6 +503,7 @@ function parsePaperSection(section) {
         title,
         authors: '',
         source: '',
+        originalUrl: '',
         code: '',
         archImage: '',
         contribution: '',
@@ -476,6 +523,10 @@ function parsePaperSection(section) {
                 const value = cells[2];
                 if (key.includes('作者')) paper.authors = value;
                 if (key.includes('来源')) paper.source = value;
+                if (key.includes('原文')) {
+                    const u = extractUrlFromTableCell(value);
+                    if (u) paper.originalUrl = u;
+                }
                 if (key.includes('代码')) paper.code = value;
                 if (key.includes('架构图')) paper.archImage = value.replace(/`/g, '');
             }
@@ -504,7 +555,7 @@ function parsePaperSection(section) {
             if (key === 'abstractOriginal') {
                 value = value.replace(/^>\s*/gm, '').trim();
             }
-            paper[key] = value;
+            paper[key] = stripTrailingMarkdownHr(value);
         }
     }
 
@@ -559,7 +610,8 @@ function renderPaperCard(paper, index, category, dateStr) {
                     <span class="source-badge ${sourceClass}">${getCategoryLabel(category)}</span>
                     <span class="md-inline">📄 ${inlineMarkdownToHtml(paper.source)}</span>
                     ${paper.authors ? `<span class="md-inline">👤 ${inlineMarkdownToHtml(paper.authors)}</span>` : ''}
-                    ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(paper.code)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">代码</a></span>` : ''}
+                    ${paper.originalUrl ? `<span>🔗 <a href="${escapeAttr(paper.originalUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">原文</a></span>` : ''}
+                    ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(extractUrlFromTableCell(paper.code) || paper.code)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">代码</a></span>` : ''}
                 </div>
                 ${preview ? `<p class="paper-card-preview md-inline">${inlineMarkdownToHtml(preview)}</p>` : ''}
                 <p class="paper-card-hint">点击查看完整解读与摘要 →</p>
@@ -591,7 +643,8 @@ function renderPaperDetailHtml(paper, category) {
             <span class="source-badge ${sourceClass}">${getCategoryLabel(category)}</span>
             <span class="md-inline">📄 ${inlineMarkdownToHtml(paper.source)}</span>
             ${paper.authors ? `<span class="md-inline">👤 ${inlineMarkdownToHtml(paper.authors)}</span>` : ''}
-            ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(paper.code)}" target="_blank" rel="noopener noreferrer">代码</a></span>` : ''}
+            ${paper.originalUrl ? `<span>🔗 <a href="${escapeAttr(paper.originalUrl)}" target="_blank" rel="noopener noreferrer">原文</a></span>` : ''}
+            ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(extractUrlFromTableCell(paper.code) || paper.code)}" target="_blank" rel="noopener noreferrer">代码</a></span>` : ''}
         </div>
         ${archImageHtml}
         <div class="paper-content">
@@ -621,7 +674,7 @@ function renderPaperDetailHtml(paper, category) {
             ` : ''}
         </div>
         ${paper.abstractOriginal || paper.abstractTranslated ? `
-            <div class="abstract-section" style="margin-top:8px;border-radius:8px;">
+            <div class="abstract-section">
                 ${paper.abstractOriginal ? `
                     <div class="section-title">📝 Abstract（原文）</div>
                     <div class="abstract-original md-inline">${nl2brMd(paper.abstractOriginal)}</div>
@@ -728,7 +781,7 @@ function escapeAttr(url) {
 }
 
 function bindPaperCardClicks() {
-    const container = document.getElementById('papers-container');
+    const container = document.getElementById('papers-list-view');
     container.addEventListener('click', (e) => {
         const card = e.target.closest('.paper-card[data-paper-key]');
         if (!card) return;
@@ -736,7 +789,7 @@ function bindPaperCardClicks() {
         const key = card.dataset.paperKey;
         const entry = paperDetailStore.get(key);
         if (!entry) return;
-        openPaperModal(entry.paper, entry.category);
+        openPaperDetail(entry.paper, entry.category);
     });
 
     container.addEventListener('keydown', (e) => {
@@ -746,40 +799,32 @@ function bindPaperCardClicks() {
         e.preventDefault();
         const entry = paperDetailStore.get(card.dataset.paperKey);
         if (!entry) return;
-        openPaperModal(entry.paper, entry.category);
+        openPaperDetail(entry.paper, entry.category);
     });
 }
 
-function initPaperModal() {
-    const modal = document.getElementById('paper-detail-modal');
-    const backdrop = document.getElementById('paperModalBackdrop');
-    const closeBtn = document.getElementById('paperModalClose');
-
-    function close() {
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+function initBackButton() {
+    const backBtn = document.getElementById('backToListBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            showListView();
+        });
     }
 
-    backdrop.addEventListener('click', close);
-    closeBtn.addEventListener('click', close);
-
+    // 支持键盘返回
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal.classList.contains('is-open')) {
-            close();
+        if (e.key === 'Escape' && document.getElementById('paper-detail-view').style.display !== 'none') {
+            showListView();
         }
     });
 }
 
-function openPaperModal(paper, category) {
-    const modal = document.getElementById('paper-detail-modal');
-    const titleEl = document.getElementById('paper-modal-title');
-    const bodyEl = document.getElementById('paperModalBody');
+function openPaperDetail(paper, category) {
+    const titleEl = document.getElementById('detail-page-title');
+    const bodyEl = document.getElementById('detail-page-body');
 
     titleEl.innerHTML = inlineMarkdownToHtml(paper.title || '');
     bodyEl.innerHTML = renderPaperDetailHtml(paper, category);
 
-    modal.classList.add('is-open');
-    modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    showDetailView();
 }
