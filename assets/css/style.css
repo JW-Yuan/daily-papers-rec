@@ -729,6 +729,50 @@ body {
     border-left-color: var(--primary-mid);
 }
 
+/* ===== 架构图样式 ===== */
+.paper-arch-image {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: var(--primary-muted);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.paper-arch-image .section-title {
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.arch-image-container {
+    width: 100%;
+    overflow-x: auto;
+    background: white;
+    border-radius: var(--radius);
+    padding: 12px;
+    text-align: center;
+}
+
+.arch-image-container img {
+    max-width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: contain;
+    cursor: zoom-in;
+    transition: transform 0.2s ease;
+}
+
+.arch-image-container img:hover {
+    transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+    .arch-image-container img {
+        max-height: 400px;
+    }
+}
+
 .detail-list {
     margin: 0;
     padding-left: 1.25rem;

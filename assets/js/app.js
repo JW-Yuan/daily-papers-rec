@@ -446,6 +446,7 @@ function parsePaperSection(section) {
         authors: '',
         source: '',
         code: '',
+        archImage: '',
         contribution: '',
         methodology: '',
         results: '',
@@ -464,6 +465,7 @@ function parsePaperSection(section) {
                 if (key.includes('作者')) paper.authors = value;
                 if (key.includes('来源')) paper.source = value;
                 if (key.includes('代码')) paper.code = value;
+                if (key.includes('架构图')) paper.archImage = value.replace(/`/g, '');
             }
         });
     }
@@ -556,6 +558,24 @@ function renderPaperCard(paper, index, category, dateStr) {
 
 function renderPaperDetailHtml(paper, category) {
     const sourceClass = `source-${category}`;
+    
+    // 架构图HTML
+    let archImageHtml = '';
+    if (paper.archImage) {
+        const imgUrl = paper.archImage.startsWith('http') 
+            ? paper.archImage 
+            : `${CONFIG.papersBasePath}${paper.archImage}`;
+        archImageHtml = `
+            <div class="paper-arch-image">
+                <div class="section-title">🏗️ 模型架构图</div>
+                <div class="arch-image-container">
+                    <img src="${escapeAttr(imgUrl)}" alt="${escapeAttr(paper.title)} 架构图" 
+                         loading="lazy" onclick="window.open('${escapeAttr(imgUrl)}', '_blank')">
+                </div>
+            </div>
+        `;
+    }
+    
     return `
         <div class="paper-meta">
             <span class="source-badge ${sourceClass}">${getCategoryLabel(category)}</span>
@@ -563,6 +583,7 @@ function renderPaperDetailHtml(paper, category) {
             ${paper.authors ? `<span class="md-inline">👤 ${inlineMarkdownToHtml(paper.authors)}</span>` : ''}
             ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(paper.code)}" target="_blank" rel="noopener noreferrer">代码</a></span>` : ''}
         </div>
+        ${archImageHtml}
         <div class="paper-content">
             ${paper.contribution ? `
                 <div class="paper-section">
