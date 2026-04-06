@@ -46,10 +46,40 @@ body {
     box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.07);
 }
 
-.header h1 {
-    font-size: 2.5rem;
+.header-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
     margin-bottom: 8px;
+}
+
+.header-title-row h1 {
+    font-size: 2.5rem;
+    margin: 0;
     font-weight: 700;
+}
+
+.header-github-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #f7f5eb;
+    opacity: 0.9;
+    line-height: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.header-github-link:hover {
+    opacity: 1;
+    transform: scale(1.07);
+}
+
+.header-github-link svg {
+    width: 34px;
+    height: 34px;
+    display: block;
 }
 
 .header-start {
@@ -810,8 +840,13 @@ body {
         padding: 30px 0;
     }
 
-    .header h1 {
+    .header-title-row h1 {
         font-size: 1.8rem;
+    }
+
+    .header-github-link svg {
+        width: 28px;
+        height: 28px;
     }
 
     .header-start {
