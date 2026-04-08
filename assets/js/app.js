@@ -6,6 +6,9 @@
 const CONFIG = {
     papersBasePath: 'papers/',
     categories: ['conference', 'journal', 'arxiv'],
+    // 不依赖 index.json：按日期探测真实存在的 md 文件
+    scanStartDate: '2024-01-01',
+    scanBatchDays: 20,
     categoryNames: {
         conference: '🏆 顶会论文',
         journal: '📘 顶刊论文',
@@ -344,18 +347,8 @@ function initFilterButtons() {
 
 async function loadAvailableDates() {
     try {
-        const response = await fetch(`${CONFIG.papersBasePath}index.json`);
-        if (!response.ok) return;
-
-        const data = await response.json();
-
-        CONFIG.categories.forEach((cat) => {
-            if (data[cat]) {
-                data[cat].forEach((file) => {
-                    availableDates.add(file.replace('.md', ''));
-                });
-            }
-        });
+        availableDates.clear();
+        await discoverAvailableDates();
 
         computeDateBounds();
         if (minDate && maxDate) {
@@ -366,6 +359,56 @@ async function loadAvailableDates() {
     } finally {
         updateHeaderStartFrom();
     }
+}
+
+async function discoverAvailableDates() {
+    const today = new Date();
+    const [sy, sm, sd] = CONFIG.scanStartDate.split('-').map(Number);
+    const startDate = new Date(sy, sm - 1, sd);
+    if (Number.isNaN(startDate.getTime()) || startDate > today) return;
+
+    const dateStrings = [];
+    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    while (cursor >= startDate) {
+        dateStrings.push(formatDate(cursor));
+        cursor.setDate(cursor.getDate() - 1);
+    }
+
+    const batchSize = Math.max(1, Number(CONFIG.scanBatchDays) || 20);
+    for (let i = 0; i < dateStrings.length; i += batchSize) {
+        const chunk = dateStrings.slice(i, i + batchSize);
+        const checks = await Promise.all(
+            chunk.map(async (dateStr) => {
+                const exists = await hasAnyCategoryFileForDate(dateStr);
+                return { dateStr, exists };
+            })
+        );
+        checks.forEach(({ dateStr, exists }) => {
+            if (exists) availableDates.add(dateStr);
+        });
+    }
+}
+
+async function hasAnyCategoryFileForDate(dateStr) {
+    const checks = await Promise.all(
+        CONFIG.categories.map(async (category) => {
+            try {
+                const resp = await fetch(`${CONFIG.papersBasePath}${category}/${dateStr}.md`, {
+                    method: 'HEAD'
+                });
+                if (resp.ok) return true;
+                // 某些静态服务不支持 HEAD，回退到 GET 检查
+                if (resp.status === 405) {
+                    const fallback = await fetch(`${CONFIG.papersBasePath}${category}/${dateStr}.md`);
+                    return fallback.ok;
+                }
+            } catch (_) {
+                return false;
+            }
+            return false;
+        })
+    );
+    return checks.some(Boolean);
 }
 
 function updateHeaderStartFrom() {
@@ -504,6 +547,7 @@ function parsePaperSection(section) {
         authors: '',
         source: '',
         originalUrl: '',
+        keywords: '',
         code: '',
         archImage: '',
         contribution: '',
@@ -527,6 +571,7 @@ function parsePaperSection(section) {
                     const u = extractUrlFromTableCell(value);
                     if (u) paper.originalUrl = u;
                 }
+                if (key.includes('关键词')) paper.keywords = value;
                 if (key.includes('代码')) paper.code = value;
                 if (key.includes('架构图')) paper.archImage = value.replace(/`/g, '');
             }
@@ -601,17 +646,22 @@ function renderPaperCard(paper, index, category, dateStr) {
     paperDetailStore.set(key, { paper, category });
 
     const preview = buildPreviewText(paper);
+    const hasKeywords = paper.keywords && paper.keywords.trim() !== '-';
+    const hasCode = paper.code && paper.code !== '-';
+    const hasLinkLine = paper.originalUrl || hasCode;
 
     return `
         <article class="paper-card paper-card--compact" data-paper-key="${key}" tabindex="0" role="button" aria-label="${escapeHtml('查看详情：' + stripInlineMarkdown(paper.title))}">
             <div class="paper-header">
                 <h3 class="paper-title md-inline">${index}. ${inlineMarkdownToHtml(paper.title)}</h3>
-                <div class="paper-meta">
-                    <span class="source-badge ${sourceClass}">${getCategoryLabel(category)}</span>
-                    <span class="md-inline">📄 ${inlineMarkdownToHtml(paper.source)}</span>
-                    ${paper.authors ? `<span class="md-inline">👤 ${inlineMarkdownToHtml(paper.authors)}</span>` : ''}
-                    ${paper.originalUrl ? `<span>🔗 <a href="${escapeAttr(paper.originalUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">原文</a></span>` : ''}
-                    ${paper.code && paper.code !== '-' ? `<span>💻 <a href="${escapeAttr(extractUrlFromTableCell(paper.code) || paper.code)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">代码</a></span>` : ''}
+                <div class="paper-meta paper-meta--stacked">
+                    <div class="paper-meta-line">
+                        <span class="source-badge ${sourceClass}">${getCategoryLabel(category)}</span>
+                        <span class="md-inline">📄 ${inlineMarkdownToHtml(paper.source)}</span>
+                    </div>
+                    ${paper.authors ? `<div class="paper-meta-line"><span class="md-inline">👤 ${inlineMarkdownToHtml(paper.authors)}</span></div>` : ''}
+                    ${hasKeywords ? `<div class="paper-meta-line"><span class="paper-keywords md-inline">🏷️ ${inlineMarkdownToHtml(paper.keywords)}</span></div>` : ''}
+                    ${hasLinkLine ? `<div class="paper-meta-line">${paper.originalUrl ? `<span>🔗 <a href="${escapeAttr(paper.originalUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">原文</a></span>` : ''}${hasCode ? `<span>💻 <a href="${escapeAttr(extractUrlFromTableCell(paper.code) || paper.code)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">代码</a></span>` : ''}</div>` : ''}
                 </div>
                 ${preview ? `<p class="paper-card-preview md-inline">${inlineMarkdownToHtml(preview)}</p>` : ''}
                 <p class="paper-card-hint">点击查看完整解读与摘要 →</p>
