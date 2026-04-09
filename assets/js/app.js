@@ -48,6 +48,7 @@ let currentMonth = new Date();
 /** 有推荐数据的最早 / 最晚日期（含当月边界） */
 let minDate = null;
 let maxDate = null;
+let lastListScrollY = 0;
 
 const paperDetailStore = new Map();
 
@@ -56,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFilterButtons();
     initTodayButton();
     initBackButton();
+    initScrollTopButton();
     bindPaperCardClicks();
     loadAvailableDates().then(() => {
         loadPapersForDate(selectedDate);
@@ -487,13 +489,23 @@ async function loadPapersForDate(date) {
 }
 
 function showListView() {
+    showListViewWithOptions({ preserveScroll: false });
+}
+
+function showListViewWithOptions(options = {}) {
+    const { preserveScroll = false } = options;
     document.getElementById('papers-list-view').style.display = 'block';
     document.getElementById('paper-detail-view').style.display = 'none';
     document.querySelector('.nav-bar').style.display = 'block';
-    window.scrollTo(0, 0);
+    if (preserveScroll) {
+        window.scrollTo(0, Math.max(0, lastListScrollY));
+    } else {
+        window.scrollTo(0, 0);
+    }
 }
 
 function showDetailView() {
+    lastListScrollY = window.scrollY || window.pageYOffset || 0;
     document.getElementById('papers-list-view').style.display = 'none';
     document.getElementById('paper-detail-view').style.display = 'block';
     document.querySelector('.nav-bar').style.display = 'none';
@@ -857,16 +869,33 @@ function initBackButton() {
     const backBtn = document.getElementById('backToListBtn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            showListView();
+            showListViewWithOptions({ preserveScroll: true });
         });
     }
 
     // 支持键盘返回
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && document.getElementById('paper-detail-view').style.display !== 'none') {
-            showListView();
+            showListViewWithOptions({ preserveScroll: true });
         }
     });
+}
+
+function initScrollTopButton() {
+    const btn = document.getElementById('scrollTopBtn');
+    if (!btn) return;
+
+    const toggle = () => {
+        const y = window.scrollY || window.pageYOffset || 0;
+        btn.classList.toggle('show', y > 260);
+    };
+
+    btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    window.addEventListener('scroll', toggle, { passive: true });
+    toggle();
 }
 
 function openPaperDetail(paper, category) {
