@@ -539,7 +539,8 @@ function stripTrailingMarkdownHr(text) {
 
 function parseMarkdownPapers(markdown) {
     const papers = [];
-    const sections = markdown.split(/###\s+\d+\.\s+/);
+    // 兼容不同生成器：论文条目标题可能使用 `## 1.` 或 `### 1.`
+    const sections = markdown.split(/#{2,3}\s+\d+\.\s+/);
 
     sections.forEach((section, index) => {
         if (index === 0) return;
