@@ -36,6 +36,9 @@
                     <button class="nav-btn calendar-btn" id="calendarBtn" title="选择日期">
                         📅 <span id="currentDate">今日</span>
                     </button>
+                    <button class="nav-btn clear-date-btn" id="clearDateBtn" title="清除已选日期，回到今日">
+                        ✖ 清除日期
+                    </button>
                     <div class="calendar-dropdown" id="calendarDropdown">
                         <div class="calendar-select-row" aria-label="选择年月">
                             <select id="yearSelect" class="calendar-select" title="年份"></select>
@@ -66,6 +69,17 @@
                     <button class="filter-btn" data-filter="journal">📘 顶刊</button>
                     <button class="filter-btn" data-filter="arxiv">📄 arXiv</button>
                 </div>
+            </div>
+            <div class="search-row" aria-label="条件搜索">
+                <input
+                    type="text"
+                    id="searchKeyword"
+                    class="search-input search-keyword"
+                    placeholder="按标题/关键词搜索（支持模糊匹配）"
+                    title="按标题或关键词搜索"
+                >
+                <button type="button" id="searchApplyBtn" class="search-btn search-btn-primary">搜索</button>
+                <button type="button" id="searchResetBtn" class="search-btn">重置</button>
             </div>
         </div>
     </nav>

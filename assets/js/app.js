@@ -41,6 +41,8 @@ function extractUrlFromTableCell(value) {
 
 let selectedDate = new Date();
 let currentFilter = 'all';
+let searchKeyword = '';
+let hasDateFilter = false;
 const availableDates = new Set();
 let calendarOpen = false;
 let currentMonth = new Date();
@@ -55,6 +57,7 @@ const paperDetailStore = new Map();
 document.addEventListener('DOMContentLoaded', () => {
     initCalendar();
     initFilterButtons();
+    initSearchBar();
     initTodayButton();
     initBackButton();
     initScrollTopButton();
@@ -278,6 +281,7 @@ function renderCalendar() {
             const el = createDayElement(day, { hasPapers: true, isToday, isSelected, disabled: false });
             el.addEventListener('click', () => {
                 selectedDate = new Date(date);
+                hasDateFilter = true;
                 updateDateDisplay();
                 loadPapersForDate(selectedDate);
                 calendarOpen = false;
@@ -323,10 +327,23 @@ function initTodayButton() {
     document.getElementById('todayBtn').addEventListener('click', () => {
         selectedDate = new Date();
         currentMonth = clampMonthToRange(selectedDate);
+        hasDateFilter = true;
         updateDateDisplay();
         loadPapersForDate(selectedDate);
         if (calendarOpen) renderCalendar();
     });
+
+    const clearBtn = document.getElementById('clearDateBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            selectedDate = new Date();
+            currentMonth = clampMonthToRange(selectedDate);
+            hasDateFilter = false;
+            updateDateDisplay();
+            loadPapersForDate(selectedDate);
+            if (calendarOpen) renderCalendar();
+        });
+    }
 }
 
 function updateDateDisplay() {
@@ -345,6 +362,37 @@ function initFilterButtons() {
             loadPapersForDate(selectedDate);
         });
     });
+}
+
+function initSearchBar() {
+    const keywordInput = document.getElementById('searchKeyword');
+    const applyBtn = document.getElementById('searchApplyBtn');
+    const resetBtn = document.getElementById('searchResetBtn');
+    if (!keywordInput || !applyBtn || !resetBtn) return;
+
+    const apply = () => {
+        const kwVal = keywordInput.value.trim();
+        searchKeyword = kwVal;
+        loadPapersForDate(selectedDate);
+    };
+
+    applyBtn.addEventListener('click', apply);
+    keywordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') apply();
+    });
+
+    resetBtn.addEventListener('click', () => {
+        keywordInput.value = '';
+        searchKeyword = '';
+        loadPapersForDate(selectedDate);
+    });
+}
+
+function matchPaperKeyword(paper, keyword) {
+    if (!keyword) return true;
+    const q = keyword.toLowerCase();
+    const haystack = `${paper.title || ''} ${paper.keywords || ''}`.toLowerCase();
+    return haystack.includes(q);
 }
 
 async function loadAvailableDates() {
@@ -450,28 +498,55 @@ async function loadPapersForDate(date) {
     let html = '';
 
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    html += `
-        <div class="date-display">
-            <h2>${dateStr}</h2>
-            <span class="weekday">${weekdays[date.getDay()]}</span>
-        </div>
-    `;
-
     paperDetailStore.clear();
 
-    const results = await Promise.all(
-        categoriesToLoad.map((category) =>
-            loadCategoryPapers(category, dateStr).then((papers) => ({
-                category,
-                papers: papers || []
-            }))
-        )
-    );
+    const allDatesDesc = [...availableDates].sort((a, b) => (a < b ? 1 : -1));
+    const keywordEmpty = !searchKeyword.trim();
+    const isDefaultTodayView =
+        !hasDateFilter && currentFilter === 'all' && keywordEmpty;
+    const targetDates = isDefaultTodayView
+        ? [dateStr]
+        : hasDateFilter
+            ? [formatDate(selectedDate)]
+            : allDatesDesc;
 
-    for (const { category, papers } of results) {
-        if (papers.length > 0) {
-            hasAnyPapers = true;
-            html += renderCategorySection(category, papers, dateStr);
+    for (const targetDateStr of targetDates) {
+        const [y, m, d] = targetDateStr.split('-').map(Number);
+        const targetDate = new Date(y, m - 1, d);
+        let hasAnyOnThisDate = false;
+        let dateBlock = `
+            <div class="date-display">
+                <h2>${targetDateStr}</h2>
+                <span class="weekday">${weekdays[targetDate.getDay()]}</span>
+            </div>
+        `;
+
+        const results = await Promise.all(
+            categoriesToLoad.map((category) =>
+                loadCategoryPapers(category, targetDateStr).then((papers) => ({
+                    category,
+                    papers: papers || []
+                }))
+            )
+        );
+
+        for (const { category, papers } of results) {
+            const filteredPapers = papers.filter((paper) =>
+                matchPaperKeyword(paper, searchKeyword)
+            );
+            if (filteredPapers.length > 0) {
+                hasAnyOnThisDate = true;
+                hasAnyPapers = true;
+                dateBlock += renderCategorySection(
+                    category,
+                    filteredPapers,
+                    targetDateStr
+                );
+            }
+        }
+
+        if (hasAnyOnThisDate) {
+            html += dateBlock;
         }
     }
 
@@ -479,8 +554,8 @@ async function loadPapersForDate(date) {
         html += `
             <div class="empty-state">
                 <div class="empty-state-icon">📭</div>
-                <h3>暂无 ${dateStr} 的论文推荐</h3>
-                <p>该日期暂时没有论文数据，请在日历中选择有推荐的日期。</p>
+                <h3>未找到匹配论文</h3>
+                <p>请调整日期、类型或关键词条件后重试。</p>
             </div>
         `;
     }
