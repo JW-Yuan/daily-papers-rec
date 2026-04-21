@@ -539,8 +539,12 @@ function stripTrailingMarkdownHr(text) {
 
 function parseMarkdownPapers(markdown) {
     const papers = [];
-    // 兼容不同生成器：论文条目标题可能使用 `## 1.` 或 `### 1.`
-    const sections = markdown.split(/#{2,3}\s+\d+\.\s+/);
+    // 兼容不同生成器：
+    // 1) `## 1. 标题` / `### 1. 标题`
+    // 2) `## 论文 1`（编号后换行，标题缺省）
+    const sections = markdown.split(
+        /#{2,3}\s+(?:\d+\.\s+|论文\s*\d+\s*(?:\r?\n|$))/
+    );
 
     sections.forEach((section, index) => {
         if (index === 0) return;
@@ -553,7 +557,9 @@ function parseMarkdownPapers(markdown) {
 
 function parsePaperSection(section) {
     const lines = section.trim().split('\n');
-    const title = lines[0] ? lines[0].trim() : '';
+    let title = lines[0] ? lines[0].trim() : '';
+    // `## 论文 1` 风格下，分段后首行常是表格，标题缺失
+    if (!title || title.startsWith('|')) title = '';
 
     const paper = {
         title,
@@ -598,13 +604,21 @@ function parsePaperSection(section) {
         实验结果: 'results',
         局限性: 'limitations',
         'Abstract（原文）': 'abstractOriginal',
-        '摘要（中文翻译）': 'abstractTranslated'
+        Abstract: 'abstractOriginal',
+        '摘要（中文翻译）': 'abstractTranslated',
+        '摘要（中文）': 'abstractTranslated'
     };
 
-    for (const [cnName, key] of Object.entries(sectionMap)) {
+    // 优先匹配更长键名，避免 `Abstract` 抢先匹配 `Abstract（原文）`
+    const sectionEntries = Object.entries(sectionMap).sort(
+        (a, b) => b[0].length - a[0].length
+    );
+
+    for (const [cnName, key] of sectionEntries) {
         const er = escapeRegex(cnName);
+        // 兼容旧格式 `####` 与新格式 `###`
         const regex = new RegExp(
-            `####\\s+${emojiHeader}\\s*${er}\\s*\\n([\\s\\S]*?)(?=####|\\*\\*Generated|$)`,
+            `#{3,4}\\s+${emojiHeader}\\s*${er}\\s*\\n([\\s\\S]*?)(?=#{3,4}\\s|\\*\\*Generated|$)`,
             'i'
         );
         const match = section.match(regex);
@@ -614,6 +628,21 @@ function parsePaperSection(section) {
                 value = value.replace(/^>\s*/gm, '').trim();
             }
             paper[key] = stripTrailingMarkdownHr(value);
+        }
+    }
+
+    // 无显式标题时，回退用核心贡献首句作为卡片标题
+    if (!paper.title || !paper.title.trim()) {
+        const hint = (paper.contribution || '').trim();
+        if (hint) {
+            const firstSentence = hint.split(/[。\n]/)[0].trim();
+            paper.title =
+                firstSentence.length > 100
+                    ? `${firstSentence.slice(0, 100)}…`
+                    : firstSentence;
+        }
+        if (!paper.title.trim()) {
+            paper.title = '（无标题）';
         }
     }
 
